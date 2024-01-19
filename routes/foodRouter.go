@@ -15,6 +15,6 @@ func FoodRoutes(incomingRoutes *gin.Engine){
 	incomingRoutes.GET("/foods/:food_id",controller.GetFood())
 	// the Post request creates a new food item in the database 
 	incomingRoutes.POST("/foods",controller.CreateFood())
-	// the Patch request updates a specific item in the database
+	// the Patch request updates a specific item entry in the database
 	incomingRoutes.PATCH("/foods/:food_id",controller.UpdateFood())
 }
