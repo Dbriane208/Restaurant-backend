@@ -16,5 +16,5 @@ func OrderRoutes(incomingRoutes *gin.Engine){
 	// Post request that creates a new order to the database
 	incomingRoutes.POST("/orders",controller.CreateOrder())
 	// Patch request that updates a specific order entry from the database
-	incomingRoutes.PATCH("/orders/:order_id",UpdateOrder())
+	incomingRoutes.PATCH("/orders/:order_id",controller.UpdateOrder())
 }

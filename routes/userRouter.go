@@ -14,7 +14,7 @@ func UserRoutes(incomingRoutes *gin.Engine){
 	// the Get request retrieves a specific user from the database
 	incomingRoutes.GET("/users/:user_id",controller.GetUser())
 	// the Post request creates a new user to the database
-	incomingRoutes.POST("/users/signup",controller.Signup())
+	incomingRoutes.POST("/users/signup",controller.SignUp())
 	// the Post request creates the user to the database
 	incomingRoutes.POST("/users/login",controller.Login())
 }
