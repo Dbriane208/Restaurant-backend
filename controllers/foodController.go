@@ -1,39 +1,105 @@
 package controllers
 
-import "github.com/gin-gonic/gin"
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"restaurant-backend/database"
+	"restaurant-backend/models"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 // gin.handlerFunc represents a request handler in gin
-// func(ctx *gin.Context) represents an anonymous function that actuallyu handles the request
+// func(ctx *gin.Context) represents an anonymous function that actually handles the request
 // [ctx *gin.Context] represents the actual HTTP request and response
 
-func GetFoods() gin.HandlerFunc{
+var foodCollection *mongo.Collection = database.OpenCollection(database.Client, "food")
+var validate = validator.New()
+
+func GetFoods() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		foodId := c.Param("food_id")
+		var food models.Food
+
+		err := foodCollection.FindOne(ctx, bson.M{"food_id": foodId}).Decode(&food)
+		defer cancel()
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while fetching the food item"})
+		}
+		c.JSON(http.StatusOK, food)
+	}
+}
+
+func GetFood() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 	}
 }
 
-func GetFood() gin.HandlerFunc{
-	return func(ctx *gin.Context) {
+func CreateFood() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		var menu models.Menu
+		var food models.Food
 
-	}
-}
+		if err := c.BindJSON(&food); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-func CreateFood() gin.HandlerFunc{
-	return func(ctx *gin.Context) {
+		validationErr := validate.Struct(food)
+		if validationErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+			return
+		}
 
-	}
-}
+		err := menuCollection.FindOne(ctx,bson.M{"menu_id":food.Menu_id}).Decode(&menu)
+		defer cancel()
 
-func round(num float64)int{
+		if err != nil{
+			msg := fmt.Sprint("menu was not found")
+			c.JSON(http.StatusInternalServerError,gin.H{"error":msg})
+			return
+		}
 
-}
+		food.Created_at,_ = time.Parse(time.RFC3339,time.Now().Format(time.RFC3339))
+		food.Updated_at,_ = time.Parse(time.RFC3339,time.Now().Format(time.RFC3339))
 
-func toFixed(num float64,person int)float64{
+		food.ID = primitive.NewObjectID()
+		food.Food_id = food.ID.Hex()
+		var num = toFixed(*food.Price,2)
+		food.Price = &num
 
-}
-
-func UpdateFood() gin.HandlerFunc{
-	return func(ctx *gin.Context) {
+		result,insertErr := foodCollection.InsertOne(ctx,food)
+		if insertErr != nil {
+			msg := fmt.Sprintf("Food item was not created")
+			c.JSON(http.StatusInternalServerError,gin.H{"error":msg})
+			return
+		}
 		
+		defer cancel()
+		c.JSON(http.StatusOK,result)
+	}
+}
+
+func round(num float64) int {
+
+}
+
+func toFixed(num float64, person int) float64 {
+
+}
+
+func UpdateFood() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
 	}
 }
