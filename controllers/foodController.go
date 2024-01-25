@@ -82,7 +82,7 @@ func CreateFood() gin.HandlerFunc {
 			return
 		}
 
-		// Querying the menu collection to find a menu based on food.menu_id
+		// Querying the menu collection to find a menu based on food.menu_id is there
 		err := menuCollection.FindOne(ctx, bson.M{"menu_id": food.Menu_id}).Decode(&menu)
 		// cancelling the context after the menu querying
 		defer cancel()
