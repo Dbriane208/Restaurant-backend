@@ -60,8 +60,9 @@ func GetMenu() gin.HandlerFunc{
 		// creating a context with a time out of 100 seconds
 		var ctx, cancel = context.WithTimeout(context.Background(),100*time.Second)
 
-		// create a menu instance and a menuId
+		// create a menu instance
 		var menu models.Menu
+		// retrieving the value of the menu id from the http request
 		menuId := c.Param("menu_id")
 
 		// Querying the database to check if there is a document with the 
@@ -91,11 +92,14 @@ func CreateMenu() gin.HandlerFunc{
 		// creating a context with a time out of 100 seconds
 		var ctx, cancel = context.WithTimeout(context.Background(),100*time.Second)
 
+		// used to extract and decode JSON data from a HTTP request body to the menu struct
 		if err := c.BindJSON(&menu); err != nil {
 			c.JSON(http.StatusBadRequest,gin.H{"error":err.Error()})
 		}
 
+		// validating the data input in the menu whether it's in the right order and format
 		validationErr := validate.Struct(menu)
+		// Error handling incase the input data to the struct is not in the correct format
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest,gin.H{"error":validationErr.Error()})
 			return
@@ -120,7 +124,8 @@ func CreateMenu() gin.HandlerFunc{
 		// cancel the context after the database insertion is done
 		defer cancel()
 
-		// return the result
+		// return the result as a json response for the inserted meal with a status code
+		// of 200
 		c.JSON(http.StatusOK,result)
 
 		// cancel the context resources and deadlines
@@ -137,7 +142,7 @@ func UpdateMenu() gin.HandlerFunc{
 		// creating an instance of the menu struct
 		var menu models.Menu
 
-		// this method is used to bind the JSON data from the HTTP request
+		// this method is used to extract and decode the JSON data from the HTTP request
 		// body to the menu variable
 		if err := c.BindJSON(&menu); err != nil {
 			c.JSON(http.StatusBadRequest,gin.H{"error": err.Error()})
@@ -161,6 +166,7 @@ func UpdateMenu() gin.HandlerFunc{
 			if !inTimeSpan(*menu.Start_date,*&menu.End_date,time.Now()){
 				msg := "kindly retype the time"
 				c.JSON(http.StatusInternalServerError,gin.H{"error":msg})
+				// cancelling the context and exits the function
 				defer cancel()
 				return
 			}
