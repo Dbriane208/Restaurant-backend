@@ -134,6 +134,11 @@ func CreateMenu() gin.HandlerFunc{
 	}
 }
 
+// creating the inTimeSpan
+func inTimeSpan(start,end,check time.Time) bool {
+	return start.After(time.Now()) && end.After(time.Now())
+} 
+
 func UpdateMenu() gin.HandlerFunc{
 	return func(c *gin.Context) {
 		// creating a context with a time out of 100 seconds
@@ -163,7 +168,7 @@ func UpdateMenu() gin.HandlerFunc{
 		// Checks if the start and end date in the menu struct are not nil 
 		if menu.Start_date != nil && menu.End_date != nil {
 			// and checks if there are in the correct timespan and cancels the operation is an error occurs
-			if !inTimeSpan(*menu.Start_date,*&menu.End_date,time.Now()){
+			if !inTimeSpan(*menu.Start_date,*menu.End_date,time.Now()){
 				msg := "kindly retype the time"
 				c.JSON(http.StatusInternalServerError,gin.H{"error":msg})
 				// cancelling the context and exits the function
