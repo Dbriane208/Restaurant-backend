@@ -7,25 +7,25 @@ import "github.com/gin-gonic/gin"
 // [ctx *gin.Context] represents the actual parameters for the current HTTP request and response
 
 func GetUsers() gin.HandlerFunc{
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
 	}
 }
 
 func GetUser() gin.HandlerFunc{
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
 	}
 }
 
 func SignUp() gin.HandlerFunc{
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
 	}
 }
 
 func Login() gin.HandlerFunc{
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
 	}
 }
