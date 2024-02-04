@@ -148,7 +148,7 @@ func UpdateMenu() gin.HandlerFunc{
 		var menu models.Menu
 
 		// this method is used to extract and decode the JSON data from the HTTP request
-		// body to the menu variable
+		// body to the menu struct
 		if err := c.BindJSON(&menu); err != nil {
 			c.JSON(http.StatusBadRequest,gin.H{"error": err.Error()})
 			return
