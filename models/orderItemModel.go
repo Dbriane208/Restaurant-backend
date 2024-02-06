@@ -12,7 +12,7 @@ import (
 
 type OrderItem struct{
 	ID                 primitive.ObjectID     `bson:"_id"`
-	Quanitity          *string               `json:"quantity"`
+	Quantity          *string               `json:"quantity"`
 	Unit_price         *float64              `json:"unit_price"`
 	Created_at          time.Time            `json:"created_at"`
 	Updated_at          time.Time            `json:"updated_at"`
