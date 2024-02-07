@@ -25,25 +25,29 @@ type orderItemsPack struct{
 	Order_items []models.OrderItem
 }
 
+// creating the orderItems collection in the database
 var orderItemsCollection *mongo.Collection = database.OpenCollection(database.Client,"orderItems")
 
 func GetOrderItems() gin.HandlerFunc{
 	return func(c *gin.Context) {
+		// creating a context with a timeout of 100 seconds
 		var ctx,cancel = context.WithTimeout(context.Background(),100*time.Second)
-
+        // quering all the orderitem in the database
 		result,err := orderItemsCollection.Find(context.TODO(),bson.M{})
-
+		// defering the cancellation of context resources until the function exits
 		defer cancel()
 		if err != nil{
 			c.JSON(http.StatusInternalServerError,gin.H{"error":"error occured while listing ordered items"})
 			return
 		}
-
+        // creating a slice to store the retrieved items form the database
 		var allOrderItems []bson.M
+		// storing the items from the database to the allOrderItems
 		if err = result.All(ctx,&allOrderItems); err != nil{
 			log.Fatal(err)
 			return
 		}
+		// returning the response of the retrieved items as a JSON response
 		c.JSON(http.StatusOK,allOrderItems)
 
 	}
@@ -51,17 +55,23 @@ func GetOrderItems() gin.HandlerFunc{
 
 func GetOrderItem() gin.HandlerFunc{
 	return func(c *gin.Context) {
+		// creating a context with a timeout of 100 seconds
 		var ctx,cancel = context.WithTimeout(context.Background(),100*time.Second)
-
+ 
+		// retrieving the order_item_id from the http request
 		orderItemId := c.Param("order_item_id")
+		// creating an instance of the orderItem struct
 		var orderItem models.OrderItem
 
+		// querying the database to find the document that matches the order_item_id
 		err := orderItemsCollection.FindOne(ctx,bson.M{"orderItem_id":orderItemId}).Decode(&orderItem)
+		// cancelling the context resources until the function exits 
 		defer cancel()
 		if err != nil{
 			c.JSON(http.StatusInternalServerError,gin.H{"error":"error occured while listing ordered item"})
 			return
 		}
+		// returning a JSON response for document that matched the orderItem_id
 		c.JSON(http.StatusOK,orderItem)
 
 	}
