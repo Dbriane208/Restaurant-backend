@@ -94,7 +94,17 @@ func GetOrderItemsByOrder() gin.HandlerFunc{
 func ItemByOrder(id string) (orderItems []primitive.M, err error){
 	var ctx,cancel = context.WithTimeout(context.Background(),100*time.Second)
 
+	// filtering the documents where id matches the order_id
 	matchStage := bson.D{{Key: "$match",Value: bson.D{{Key: "order_id",Value: id}}}}
+	// {
+	// 	$lookup:
+	// 	  {
+	// 		from: <collection to join>,
+	// 		localField: <field from the input documents>,
+	// 		foreignField: <field from the documents of the "from" collection>,
+	// 		as: <output array field>
+	// 	  }
+	//  }
 	lookupStage := bson.D{{Key: "$lookup",Value: bson.D{{Key: "from",Value: "food"},{Key: "localField",Value: "food_id"},{Key: "foreignField",Value: "food_id"},{Key: "as",Value: "food"}}}}
 	unwindStage := bson.D{{Key: "$unwind",Value: bson.D{{Key: "path",Value: "$food"},{Key: "preserveNullAndEmptyArrays",Value: true}}}}
 
@@ -112,20 +122,20 @@ func ItemByOrder(id string) (orderItems []primitive.M, err error){
 			{Key: "food_name",Value: "$food.name"},
 			{Key: "food_image",Value: "$food.food_image"},
 			{Key: "table_number",Value: "$table.table_number"},
-			{Key: "table_id",Value: "$table.table_id"},
-			{Key: "order_id",Value: "order.order_id"},
+			{Key: "table_id",Value: "$table.table_id"}, 
+			{Key: "order_id",Value: "$order.order_id"},
 			{Key: "price",Value: "$food.price"},
 			{Key: "quantity",Value: 1},
 		},},}
 
-	groupStage := bson.D{{Key: "$group",Value: bson.D{{Key: "_id",Value: bson.D{{Key: "order_id",Value: "$order_id"},{Key: "table_id",Value: "$table_id"},{Key: "table_number",Value: "$table_number"}}},{Key: "payment_due",Value: bson.D{{Key: "$sum",Value: "$amount"}}},{Key: "total_count",Value: bson.D{{Key: "$sum",Value: 1}}},{Key: "order_items",Value: bson.D{{Key: "$push",Value: "$$root"}}}}}} 
+	groupStage := bson.D{{Key: "$group",Value: bson.D{{Key: "_id",Value: bson.D{{Key: "order_id",Value: "$order_id"},{Key: "table_id",Value: "$table_id"},{Key: "table_number",Value: "$table_number"}}},{Key: "payment_due",Value: bson.D{{Key: "$sum",Value: "$amount"}}},{Key: "total_count",Value: bson.D{{Key: "$sum",Value: 1}}},{Key: "order_items",Value: bson.D{{Key: "$push",Value: "$$ROOT"}}}}}} 
 
 	projectStage2 := bson.D{
 		{Key: "$project",Value: bson.D{
 			{Key: "id",Value: 0},
 			{Key: "payment_due",Value: 1},
 			{Key: "total_count",Value: 1},
-			{Key: "table_number",Value: "4_id.table_number"},
+			{Key: "table_number",Value: "$_id.table_number"},
 			{Key: "order_items",Value: 1},
 		},},}
 
