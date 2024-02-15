@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"restaurant-backend/database"
@@ -15,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
+// Defines a struct with the below details and embeds jwt.
 type SignedDetails struct{
 	Email string
 	First_name string
@@ -23,11 +22,15 @@ type SignedDetails struct{
 	Uid string
 	jwt.StandardClaims
 }
-
+// creates a user collection in the database
 var userCollection *mongo.Collection = database.OpenCollection(database.Client,"user")
+// value retrieved from the environment variable
 var SECRET_KEY string = os.Getenv("SECRET_KEY")
 
+// function that takes four arguments and returns 3 values
 func GenerateAllTokens(email string,firstName string,lastName string,uid string)(signedToken string,signedRefreshToken string, err error){
+	// creates a variable of type *SignedDetails and initializes it with the received values
+	// sets the expiry time to 24hrs from the current time
 	claims := &SignedDetails{
 		Email: email,
 		First_name: firstName,
@@ -38,21 +41,38 @@ func GenerateAllTokens(email string,firstName string,lastName string,uid string)
 		},
 	}
 
+    // creates a refreshClaims variable of type *SignedDetails with only Standardclaims initalized
+	// setting its expiration time to 168 hours
 	refreshClaims := &SignedDetails{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour*time.Duration(168)).Unix(),
 		},
 	}
 
+	// Generates a JWT token and a refresh token using the claims and refresh claims respectively signed with the 
+	// HMAC-SHA256 algorithm
 	token,err := jwt.NewWithClaims(jwt.SigningMethodHS256,claims).SignedString([]byte(SECRET_KEY))
-	refreshToken,err := jwt.NewWithClaims(jwt.SigningMethodHS256,refreshClaims).SignedString([]byte(SECRET_KEY))
 
+    // panics the token err generation and logs it
 	if err != nil{
 		log.Panic(err)
 		return
 	}
+
+	// Generates a JWT token and a refresh token using the claims and refresh claims respectively signed with the 
+	// HMAC-SHA256 algorithm
+	refreshToken,rtErr := jwt.NewWithClaims(jwt.SigningMethodHS256,refreshClaims).SignedString([]byte(SECRET_KEY))
+
+	// panics the token err generation and logs it
+	if rtErr != nil {
+		log.Panic(rtErr)
+		return
+	}
+	
+	// returns the generated token, refresh token and any error 
 	return token,refreshToken,err
 }
+
 
 func UpdateAllTokens(signedToken string,signedRefreshToken string,userid string){
 	var ctx,cancel = context.WithTimeout(context.Background(),100*time.Second)
@@ -95,14 +115,12 @@ func ValidateToken(signedToken string)(claims *SignedDetails,msg string){
 
 	claims,ok := token.Claims.(*SignedDetails)
 	if !ok {
-		msg = fmt.Sprintf("the token is invalid")
-		msg = err.Error()
+		msg = "The token is invalid :" + err.Error()
 		return
 	}
 
 	if claims.ExpiresAt < time.Now().Local().Unix(){
-		msg = fmt.Sprintf("token is expired")
-		msg = err.Error()
+		msg = "Token is expired :" + err.Error()
 		return
 	}
 
